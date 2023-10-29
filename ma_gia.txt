@@ -1,0 +1,25 @@
+Khởi chạy
+	lcd hiển thị: "Hello" // ghi j thêm cũng dc
+
+lặp: 
+	a = đọc PIR
+	if (a có tín hiệu) 
+		bật lcd
+		b = đọc nhiệt độ
+		c = đọc mq 1
+		d = đọc mq 2
+		if ( 280 < c <= 350 )
+			xuất tín hiệu chân 13 mức cao
+			lcd print "canh bao oxy thap" 
+			ghi so oxy
+		else if( c <= 280 || b > 37 )
+			lcd chớp tắt liên tục //chớp vừa thôi để ngi ta đọc số nữa
+			chân 13 xuất cao thấp xen kẽ 2 lần
+			lcd print "o:" số O2; "t:" số nhiệt độ
+			lcd print "ha kinh xuong"
+		else 
+			lcd print nhiệt độ oxy
+	else 
+		tắt đèn lcd, tắt hết
+
+		
