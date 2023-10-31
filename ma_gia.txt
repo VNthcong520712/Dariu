@@ -1,4 +1,4 @@
-Khởi chạy
+﻿Khởi chạy
 	lcd hiển thị: "Hello" // ghi j thêm cũng dc
 
 lặp: 
@@ -22,4 +22,6 @@ lặp:
 	else 
 		tắt đèn lcd, tắt hết
 
+
+(test github 11:49 31/10)
 		
