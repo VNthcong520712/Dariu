@@ -7,12 +7,13 @@
 #include <OneWire.h> // Thu vien giao tiep 1 wire
 #include <DallasTemperature.h> // Thu vien cam bien nhiet do DB18B20
 #include "DFRobot_OxygenSensor.h" // Thu vien cam bien nong do O2
+#include <Servo.h> // Thu vien dieu khien servo
 
 #define ONE_WIRE_BUS 7 // chan ket noi cam bien nhiet do
 #define TEMPERATURE_PRECISION 9 // do chinh xac thang do nhiet do
 #define HU_DETE 8 // chan ket noi cam bien chuyen dong
-#define WAR 3 // chan canh bao 
-#define SET_V 4 // chan set do lon am thanh
+#define WAR 4 // chan canh bao 
+#define SET_V 3 // chan set do lon am thanh
 #define SER1 5 // cua so xe
 #define SER2 6 // cua so xe
 #define ADD_O2 ADDRESS_3 // dia chi cam bien o2
@@ -22,6 +23,8 @@
 int numberOfDevices; // so luong cam bien nhiet do
 DeviceAddress tempDeviceAddress;
 
+Servo ser1; // khoi tao servo
+Servo ser2; // khoi tao servo
 OneWire oneWire(ONE_WIRE_BUS); // setup chan doc 1 wire
 DallasTemperature tempSensors(&oneWire); // khoi tao cam bien nhiet do
 LiquidCrystal_I2C monitor(ADD_LCD, 16, 2); // khoi tao man hinh LCD 1602
@@ -38,6 +41,7 @@ float Temperature(DeviceAddress deviceAddress) {
 
 // ham hien thi len man hinh LCD
 void write_string(int x, int y, String mess) {
+  Serial.println(mess);
   monitor.setCursor(0, y);
   monitor.print("                ");
   monitor.setCursor(x, y);
@@ -49,6 +53,10 @@ void setup() {
   Serial.begin(9600);
   tempSensors.begin(); // bat dau nhiet do
   monitor.init(); // bat dau man hinh LCD
+
+  // khai bao chan dieu khien 
+  ser1.attach(SER1);
+  ser2.attach(SER2);
 
   // kiem tra cam bien oxy
   while(!oxygen.begin(ADD_O2)){
@@ -89,14 +97,19 @@ void loop() {
     temp_ = tempSensors.getTempC(tempDeviceAddress); // nhan nhiet do
     float oxygenData = oxygen.getOxygenData(COLLECT_NUMBER); // nhan nong do oxy
 
-    write_string(0, 0, "*C:" + String(temp_) + " %O:" + String(oxygenData));
+    write_string(0, 0, "%O:" + String(oxygenData) + " *C:" + String(temp_)); // show du lieu len LCD
 
     // so sanh so lieu
-    if ((17 < oxygenData && oxygenData <= 18) || temp_ >= 36) {
+    if ((20 < oxygenData && oxygenData <= 21) || (32 > temp_ && temp_ >= 31)) {
+      // canh bao nhe
       digitalWrite(SET_V, 0);
       digitalWrite(WAR, 1);
-      write_string(0, 1, "muc oxy thap");
-    } else if (oxygenData <= 17 || temp_ > 38) {
+      write_string(0, 1, "chi so nguy hiem");
+    } else if (oxygenData <= 20 || temp_ > 32) {
+      // mo cua xe
+      ser1.write(45);
+      ser2.write(45);
+      // canh bao to
       digitalWrite(SET_V, 1);
       monitor.noBacklight();
       digitalWrite(WAR, 1);
@@ -106,11 +119,15 @@ void loop() {
       write_string(0, 1, "ha kinh xuong");
       delay(500);
     } else {
+      // dung canh bao
       digitalWrite(WAR, 0);
       write_string(0, 1, "");
+      // dong cua
+      ser1.write(0);
+      ser1.write(0);
     }
 
-  } else {
+  } else { // tat dem LCD
     monitor.noBacklight();
   }
 }
